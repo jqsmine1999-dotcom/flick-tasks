@@ -11,7 +11,7 @@
     {
       "binding": "DB",
       "database_name": "flick-tasks",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "c314befe-590a-4130-8349-b925103b7b12",
       "migrations_dir": "migrations"
     }
   ],
