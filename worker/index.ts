@@ -1,9 +1,10 @@
 import { Hono } from 'hono'
+import { deleteCookie } from 'hono/cookie'
 import { MAX_AI_INPUT, MAX_TITLE, STATUSES, type Status, type Task } from '../shared/types'
 import { splitIntoTasks } from './ai'
 import { auth } from './auth'
 import type { AppEnv } from './env'
-import { getSessionUser } from './session'
+import { SESSION_COOKIE, getSessionUser } from './session'
 
 const app = new Hono<AppEnv>()
 
@@ -91,6 +92,18 @@ api.post('/ai/split', async (c) => {
   if (!text) return c.json({ error: 'empty' }, 400)
   if (text.length > MAX_AI_INPUT) return c.json({ error: 'too long' }, 413)
   return c.json(await splitIntoTasks(c.env, text))
+})
+
+// Account deletion: removes the user, every session and every task.
+api.delete('/me', async (c) => {
+  const id = c.get('user').id
+  await c.env.DB.batch([
+    c.env.DB.prepare('DELETE FROM tasks WHERE user_id = ?').bind(id),
+    c.env.DB.prepare('DELETE FROM sessions WHERE user_id = ?').bind(id),
+    c.env.DB.prepare('DELETE FROM users WHERE id = ?').bind(id),
+  ])
+  deleteCookie(c, SESSION_COOKIE, { path: '/' })
+  return c.json({ ok: true })
 })
 
 app.route('/api', api)

@@ -1,5 +1,5 @@
 // App-shell cache so the composer opens instantly, even offline.
-const CACHE = 'flick-v1'
+const CACHE = 'flick-v2'
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.add('/')).then(() => self.skipWaiting()))
@@ -18,7 +18,7 @@ self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET' || url.origin !== location.origin) return
   if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/auth/')) return
 
-  if (e.request.mode === 'navigate') {
+  if (e.request.mode === 'navigate' && url.pathname === '/') {
     // Stale-while-revalidate: paint the cached shell immediately, refresh it in the background.
     const network = fetch(e.request).then((res) => {
       if (res.ok) {

@@ -248,3 +248,36 @@ test('keyboard: arrow keys flick a focused card', async ({ page }) => {
   await page.keyboard.press('ArrowRight')
   await expect(count(page, 'doing')).toHaveText('1')
 })
+
+test('homepage, privacy policy and terms pages are public and linked', async ({ page }) => {
+  for (const [path, heading] of [['/about', 'Flick'], ['/privacy', 'プライバシーポリシー'], ['/terms', '利用規約']]) {
+    await page.goto(path)
+    await expect(page.locator('h1')).toHaveText(heading)
+    await expect(page.locator('nav a[href="/privacy"]')).toBeVisible()
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
+    expect(overflow).toBeLessThanOrEqual(0)
+  }
+  await page.goto('/about')
+  await expect(page.getByText('Google アカウントの利用について')).toBeVisible()
+})
+
+test('account deletion removes the user and all tasks (two-step confirm)', async ({ page, browser }) => {
+  const name = await login(page)
+  await add(page, '消すアカウントのタスク')
+  await expect.poll(async () => (await page.request.get('/api/tasks').then((r) => r.json())).tasks.length).toBe(1)
+  await page.getByTestId('avatar').click()
+  await page.getByTestId('delete-account').click()
+  await expect(page.getByTestId('delete-account')).toHaveText('すべてのデータを削除する')
+  await expect(page.getByTestId('avatar')).toBeVisible()
+  await page.getByTestId('delete-account').click()
+  await expect(page.getByTestId('login')).toBeVisible()
+  await expect(page.getByTestId('task')).toHaveCount(0)
+  expect((await page.request.get('/api/tasks')).status()).toBe(401)
+
+  // Logging in again with the same Google identity starts from an empty account.
+  const other = await browser.newContext()
+  const p2 = await other.newPage()
+  await login(p2, name)
+  await expect(p2.getByTestId('count-todo')).toHaveText('0')
+  await other.close()
+})

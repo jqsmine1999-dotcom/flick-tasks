@@ -9,7 +9,7 @@ import { SkeletonCards, SkeletonSegmented, SkeletonTopbar } from './components/S
 import { TaskCard } from './components/TaskCard'
 import { Toast, type ToastState } from './components/Toast'
 import { FLICK, STATUS_META, type Dir } from './status'
-import { addTask, addTasks, aiSplit, boot, logout, removeTask, restoreTask, updateTask, useStore } from './store'
+import { addTask, addTasks, aiSplit, boot, deleteAccount, logout, removeTask, restoreTask, updateTask, useStore } from './store'
 
 const spring = { type: 'spring', stiffness: 380, damping: 34 } as const
 
@@ -25,6 +25,7 @@ export default function App() {
   const [openId, setOpenId] = useState<string | null>(null)
   const [sheet, setSheet] = useState<'account' | 'login' | null>(null)
   const [toast, setToast] = useState<ToastState | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const flickDirs = useRef<Record<string, Dir | undefined>>({})
 
   const showToast = useCallback((text: string, action?: ToastState['action']) => {
@@ -246,7 +247,14 @@ export default function App() {
         }}
       />
 
-      <Sheet open={sheet === 'account' && !!user} onClose={() => setSheet(null)} label="アカウント">
+      <Sheet
+        open={sheet === 'account' && !!user}
+        onClose={() => {
+          setSheet(null)
+          setConfirmDelete(false)
+        }}
+        label="アカウント"
+      >
         {user && (
           <>
             <div className="account">
@@ -267,6 +275,24 @@ export default function App() {
             >
               ログアウト
             </motion.button>
+            <motion.button
+              className="danger-btn"
+              data-testid="delete-account"
+              whileTap={{ scale: 0.97 }}
+              animate={confirmDelete ? { background: 'var(--danger)', color: '#fff' } : { background: 'rgba(239, 68, 68, 0)', color: 'var(--danger)' }}
+              onClick={async () => {
+                if (!confirmDelete) return setConfirmDelete(true)
+                setConfirmDelete(false)
+                setSheet(null)
+                if (!(await deleteAccount())) showToast('削除できませんでした')
+              }}
+            >
+              {confirmDelete ? 'すべてのデータを削除する' : 'アカウントを削除'}
+            </motion.button>
+            <div className="legal">
+              <a href="/privacy">プライバシーポリシー</a>
+              <a href="/terms">利用規約</a>
+            </div>
           </>
         )}
       </Sheet>

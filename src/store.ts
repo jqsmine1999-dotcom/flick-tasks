@@ -203,6 +203,17 @@ export async function boot() {
 
 export async function logout() {
   await fetch('/auth/logout', { method: 'POST' }).catch(() => undefined)
+  clearLocal()
+}
+
+export async function deleteAccount(): Promise<boolean> {
+  const res = await fetch('/api/me', { method: 'DELETE' }).catch(() => null)
+  if (!res?.ok) return false
+  clearLocal()
+  return true
+}
+
+function clearLocal() {
   outbox = []
   save(K.outbox, outbox)
   set({ user: null, tasks: [] })

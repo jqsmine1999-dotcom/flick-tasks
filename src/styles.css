@@ -195,6 +195,9 @@ textarea, input { font: inherit; color: inherit; }
 .account .meta b { display: block; font-size: 17px; }
 .account .meta small { color: var(--ink-2); font-size: 13px; }
 
+.legal { display: flex; justify-content: center; gap: 18px; margin-top: 14px; font-size: 12px; }
+.legal a { color: var(--ink-3); text-decoration: none; }
+
 /* ---------- toast ---------- */
 .toast-wrap { position: fixed; left: 0; right: 0; bottom: calc(var(--safe-b) + 20px); z-index: 50; display: grid; place-items: center; pointer-events: none; }
 .toast {
