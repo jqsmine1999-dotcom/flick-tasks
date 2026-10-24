@@ -1,0 +1,4 @@
+# Local development only. Never deploy DEV_AUTH.
+DEV_AUTH=1
+GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-client-secret
